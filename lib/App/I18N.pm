@@ -21,7 +21,7 @@ use constant USE_GETTEXT_STYLE => 1;
 
 # our @EXPORT = qw(_);
 
-our $VERSION = 0.002;
+our $VERSION = 0.003;
 our $LOGGER;
 our $LMExtract;
 our $MIME = MIME::Types->new();
@@ -65,6 +65,7 @@ sub _check_mime_type {
     my $mime_type = ($mimeobj ? $mimeobj->type : "unknown");
     return if ( $mime_type =~ /^image/ );
     return if ( $mime_type =~ /compressed/ );  # ignore compressed archive files
+    return if ( $mime_type =~ /^application/ );
     return 1;
 }
 

@@ -1,4 +1,6 @@
 bin/po
+etc/i18n.yml
+etc/po.yml
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
@@ -28,6 +30,7 @@ lib/App/I18N/Web/Declare.pm
 lib/App/I18N/Web/Handler.pm
 lib/App/I18N/Web/View.pm
 Makefile.PL
+maketext/po.js
 MANIFEST			This list of files
 META.yml
 README.md
@@ -41,3 +44,4 @@ share/static/jquery.jgrowl.css
 share/static/jquery.jgrowl.js
 share/static/Stream.js
 t/db.t
+TODO.md
