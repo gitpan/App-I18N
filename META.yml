@@ -21,6 +21,7 @@ no_index:
     - share
     - t
 requires:
+  App::CLI: 0
   DBD::SQLite: 0
   DBI: 0
   DBIx::Class: 0
@@ -35,8 +36,9 @@ requires:
   LWP::Simple: 0
   Locale::Maketext::Extract: 0
   Locale::Maketext::Lexicon: 0
+  MIME::Types: 0
   Plack: 0
   Tatsumaki: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.002
+version: 0.004

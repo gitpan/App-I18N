@@ -1,6 +1,4 @@
 bin/po
-etc/i18n.yml
-etc/po.yml
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
@@ -16,6 +14,7 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/App/I18N.pm
 lib/App/I18N/Command.pm
+lib/App/I18N/Command/Gen.pm
 lib/App/I18N/Command/Help.pm
 lib/App/I18N/Command/Lang.pm
 lib/App/I18N/Command/Parse.pm
