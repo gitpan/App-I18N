@@ -38,7 +38,8 @@ requires:
   Locale::Maketext::Lexicon: 0
   MIME::Types: 0
   Plack: 0
+  REST::Google::Translate: 0
   Tatsumaki: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.004
+version: 0.005

@@ -21,7 +21,7 @@ use constant USE_GETTEXT_STYLE => 1;
 
 # our @EXPORT = qw(_);
 
-our $VERSION = 0.004;
+our $VERSION = 0.005;
 our $LOGGER;
 our $LMExtract;
 our $MIME = MIME::Types->new();
@@ -111,6 +111,17 @@ sub update_catalog {
         system(qq{msgfmt -v $translation -o $mofile});
     }
 }
+
+sub guess_podir {
+    my ($class,$cmd) = @_;
+    my $podir;
+    $podir = 'po' if -e 'po';
+    $podir = 'locale' , $cmd->{locale} = 1 if -e 'locale';
+    $podir ||= 'locale' if $cmd->{locale};
+    $podir ||= 'po';
+    return $podir;
+}
+
 
 sub update_catalogs {
     my ($self,$podir , $cmd ) = @_;
