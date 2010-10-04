@@ -43,22 +43,35 @@ sub options {
         'verbose' => 'verbose',
         'msgstr' => 'from_msgstr',   # translate from existing msgstr instead of translating from msgid.
         'overwrite' => 'overwrite',  # overwrite existing msgstr
-        's'         => 'skip_existing'
     )
 }
 
-sub run {
-    my ( $self ) = shift;
-    my $logger = $self->logger();
+=pod
 
+--from 
+
+    from langauge
+
+--to   
+
+    translate to langauge
+
+translate zh_CN po file , msgid language en_US , msgstr language zh_CN
+
+    po auto zh_CN --from en_US --to zh_CN
+
+=cut
+
+sub run {
+    my ( $self , $lang ) = @_;
+    my $logger = $self->logger();
 
     # XXX: check this option
     $self->{backend} ||= 'rest-google';
 
-
-    $self->{mo} = 1 if $self->{locale};
     my $podir = $self->{podir};
     $podir = App::I18N->guess_podir( $self ) unless $podir;
+    $self->{mo} = 1 if $self->{locale};
 
     mkpath [ $podir ];
 
@@ -70,32 +83,23 @@ sub run {
     }
 
     my $from_lang = $self->{from};
-    my $to_lang   = $self->{to};
-    my $from_pofile;
-    my $to_pofile;
+    my $to_lang = $self->{to} || $lang;
 
+    my $pofile;
     if( $self->{locale} ) {
-        mkpath [ File::Spec->join( $podir , $from_lang , 'LC_MESSAGES' )  ];
-        $from_pofile = File::Spec->join( $podir , $from_lang , 'LC_MESSAGES' , $pot_name . ".po" );
-
-        mkpath [ File::Spec->join( $podir , $to_lang , 'LC_MESSAGES' )  ];
-        $to_pofile = File::Spec->join( $podir , $to_lang , 'LC_MESSAGES' , $pot_name . ".po" );
+        $pofile = File::Spec->join( $podir , $lang , 'LC_MESSAGES' , $pot_name . ".po" );
     }
     else {
-        $from_pofile = File::Spec->join( $podir , $from_lang . ".po" );
-
-        $to_pofile = File::Spec->join( $podir , $to_lang . ".po" );
+        $pofile = File::Spec->join( $podir , $lang . ".po" );
     }
 
     my $ext = Locale::Maketext::Extract->new;
 
-    $logger->info( "Reading po file: $from_pofile" ) if $self->{verbose};
-    $ext->read_po($from_pofile);
-
+    $logger->info( "Reading po file: $pofile" );
+    $ext->read_po($pofile);
 
     my $from_lang_s = $from_lang;
     my $to_lang_s = $to_lang;
-
     ($from_lang_s) = ( $from_lang  =~ m{^([a-z]+)(_\w+)} );
     ($to_lang_s)   = ( $to_lang    =~ m{^([a-z]+)(_\w+)} );
 
@@ -104,12 +108,12 @@ sub run {
     for my $i ($ext->msgids()) {
         my $msgstr = $ext->msgstr( $i );
 
-        next if $msgstr && $self->{skip_existing};
+        next if $msgstr && ! $self->{overwrite};
 
         $i = $msgstr if $msgstr && $self->{msgstr};
 
-        $logger->info( "Translating: [ $i ]" ) if $self->{verbose};
-        $logger->info( encode_utf8("  Original translation: [ $msgstr ]") ) if $msgstr;
+        $logger->info( "Translating: [ $i ]" );
+        $logger->info( "  Original translation: [ $msgstr ]" ) if $msgstr;
 
         my $retry = 1;
         while($retry--) {
@@ -139,18 +143,19 @@ sub run {
                 # XXX: let it retry for 3 times
                 $retry = 2;
                 $logger->error( "REST API ERROR: $@ , $!" );
+                $logger->info( "Retrying ..." );
             }
         }
     }
 
-    $logger->info( "Writing po file to $to_pofile" );
-    $ext->write_po($to_pofile);
+    $logger->info( "Writing po file to $pofile" );
+    $ext->write_po($pofile);
 
     if( $self->{mo} ) {
-        my $mofile = $to_pofile;
+        my $mofile = $pofile;
         $mofile =~ s{\.po$}{.mo};
         $logger->info( "Updating MO file: $mofile" );
-        system(qq{msgfmt -v $to_pofile -o $mofile});
+        system(qq{msgfmt -v $pofile -o $mofile});
     }
 
     $logger->info( "Done" );
