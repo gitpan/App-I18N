@@ -99,12 +99,14 @@ And `locale` directory will enable `--locale` option.
 
 Auto translate via Google Translate REST API:
 
-Default backend google translate rest, this will translate po/en\_US.po to po/zh\_TW.po.
-when using --locale option , this will translate locale/en\_US/LC\_MESSAGES/en\_US.po to ...
+Default backend is google translate REST API, This will translate zh\_TW.po file and translate msgid (en\_US)
+to msgstr (zh\_TW):
 
-    $ po auto zh_TW --from en\_US
+    $ po auto zh_TW --from en_US
 
-    $ po auto zh_CN --from en\_US --to zh_CN
+    $ po auto zh_CN --from en_US --to zh_CN
+
+    $ po auto zh_CN --from en_US --overwrite --prompt
 
     $ po auto --backend google-rest --from en\_US --to zh\_TW
 
@@ -143,6 +145,14 @@ start a web server to edit po file of specified language:
 extract message from files and start a web server:
 
     $ po server --dir lib --dir share/static --lang en
+
+### For PHP Developers
+
+If you are using gettext extension for your application,
+You should use --locale option to generate locale structure.
+
+And `maketext/l10n.php` file for l10n helper class and functions.
+
 
 ## **TODO**
 
