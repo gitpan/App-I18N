@@ -43,4 +43,4 @@ requires:
   Tatsumaki: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.011
+version: 0.012
