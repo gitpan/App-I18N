@@ -11,7 +11,11 @@ use File::Find::Rule;
 use REST::Google::Translate;
 use base qw(App::I18N::Command);
 
+=head1 NAME
 
+status - show translation status
+
+=cut
 
 sub print_bar {
     my ($self,$value) = @_;
@@ -39,7 +43,13 @@ sub run {
     my @pofiles = File::Find::Rule->file->name( "*.po" )->in( $podir );
     for my $pofile ( @pofiles ) {
         my $extract = Locale::Maketext::Extract->new;
-        my ($lang) = ($pofile =~ m{(\w+)\.po$} );   # get en_US or zh_TW ... etc
+
+        my $lang;
+        if( $self->{locale} ) {
+            ($lang) = ($pofile =~ m{(\w+)/LC_MESSAGES/} );   # get en_US or zh_TW ... etc
+        } else {
+            ($lang) = ($pofile =~ m{(\w+)\.po$} );   # get en_US or zh_TW ... etc
+        }
 
         $extract->read_po($pofile);
 
