@@ -27,6 +27,7 @@ requires 'MIME::Types';
 requires 'App::CLI';
 requires 'Data::Dumper';
 requires 'REST::Google::Translate';
+requires 'Locale::Language';
 
 install_script 'bin/po';
 

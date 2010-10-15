@@ -10,7 +10,7 @@ use Plack::Runner;
 use File::Basename;
 use File::ShareDir qw();
 use File::Path qw(mkpath);
-
+use Locale::Language;
 
 use constant debug => 1;
 
@@ -20,9 +20,21 @@ sub options { (
     'dir=s@'    => 'directories',
     'podir=s'   => 'podir',
     'mo'        => 'mo',
+    'verbose'   => 'verbose',
     'locale'    => 'locale',
 ) }
 
+=head3 %podata
+
+    { 
+        [lang_code] => { 
+            name => 'Language Name',
+            path => 'po file path',
+        },
+        ...
+    }
+
+=cut
 
 
 sub run {
@@ -62,35 +74,45 @@ sub run {
     if( $@ ) {
         warn $@;
     }
-    # $db = App::I18N::DB->new( lang => 'zh-tw' );
+
     $db = App::I18N::DB->new();
 
-    $logger->info("Importing messages to sqlite memory database.");
-    my @pofiles = ( $self->{pofile} ) || File::Find::Rule->file()->name("*.po")->in( $podir );
+    # $lang = code2language('en');        # $lang gets 'English'
 
+    $logger->info("Importing messages to sqlite memory database.");
+
+    my @pofiles = ( $self->{pofile} ) || File::Find::Rule->file()->name("*.po")->in( $podir );
+    my %podata = ();
     for my $file ( @pofiles ) {
-        my ($langname) = ( $file =~ m{([a-zA-Z-_]+)\.po$} );
+
+        my ($langname)  = ( $file =~ m{([a-zA-Z-_]+)\.po$} );
+        my ($code) = ( $langname =~ m{^([a-zA-Z]+)} );
         $logger->info( "Importing $langname: $file" );
         $db->import_po( $langname , $file );
+
+        $podata{ $langname } = {
+            code => $code,
+            name => code2language( $code ),
+            path => $file,
+        };
     }
+
 
     $SIG{INT} = sub {
         # XXX: write sqlite data to po file here.
-        $logger->info("Exporting messages from sqlite memory database.");
-        # $db->export_po(  );
+        $logger->info("Exporting messages from sqlite memory database...");
+        for my $langname ( keys %podata ) {
+            my $opt = $podata{ $langname };
+            $db->export_po( $langname , $opt->{path} );
+        }
         exit;
     };
 
-#     $lme->read_po( $translation ) if -f $translation && $translation !~ m/pot$/;
-#     $lme->set_compiled_entries;
-#     $lme->compile(USE_GETTEXT_STYLE);
-#     $lme->write_po($translation);
-
     Template::Declare->init( dispatch_to => ['App::I18N::Web::View'] );
-
-    my $app = App::I18N::Web->new([
-        "(/.*)" => "App::I18N::Web::Handler"
-    ]);
+    my $app = App::I18N::Web->new( [
+            "/api/(.*)" => "App::I18N::Web::Handler::API",
+            "(/.*)"     => "App::I18N::Web::Handler",
+    ] );
 
     my $shareroot = 
         ( -e "./share" ) 
@@ -102,15 +124,19 @@ sub run {
     $logger->info("pofile: @{[ $self->{pofile} ]}") if $self->{pofile};
     $logger->info("language: @{[ $self->{language} ]}") if $self->{language};
 
-    $app->webpo({
+    $app->options({
         podir     => $podir,
-        language  => $self->{language},
-        pofile    => $self->{pofile},
         shareroot => $shareroot,
+        map { $_ => $self->{$_} } grep { $self->{$_} } qw(language pofile locale),
     });
+    $app->podata( \%podata );
+    $app->db( $db );
 
     $app->template_path( $shareroot . "/templates" );
     $app->static_path( $shareroot . "/static" );
+
+
+
 
     my $runner = Plack::Runner->new;
     $runner->parse_options(@ARGV);

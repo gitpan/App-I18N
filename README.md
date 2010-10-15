@@ -102,7 +102,6 @@ And `locale` directory will enable `--locale` option.
         zh_TW: [======                                            ] 12% (1/8) 
 
 
-
 ## Auto Translation
 
 Auto translate via Google Translate REST API:
@@ -153,6 +152,23 @@ start a web server to edit po file of specified language:
 extract message from files and start a web server:
 
     $ po server --dir lib --dir share/static --lang en
+
+
+### Server API
+
+/api/podata
+
+/api/options
+
+/api/entry/list[/{lang}]
+
+/api/entry/unsetlist[/{lang}]
+
+/api/entry/get/{id}
+
+/api/entry/set/{id}/{msgstr}
+
+/api/entry/insert/{lang}/{msgid}/{msgstr}
 
 ### For PHP Developers
 

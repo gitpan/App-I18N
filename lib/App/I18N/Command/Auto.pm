@@ -48,14 +48,6 @@ sub options {
     )
 }
 
-sub prompt {
-    my ($self,$msg) = @_;
-    print STDERR $msg;
-    my $ans = <STDIN>;
-    chomp($ans);
-    $ans ||= "Y";
-    return $ans;
-}
 
 
 sub run {
@@ -105,8 +97,8 @@ sub run {
 
     my $from_lang_s = $from_lang;
     my $to_lang_s = $to_lang;
-    ($from_lang_s) = ( $from_lang  =~ m{^([a-z]+)(_\w+)} );
-    ($to_lang_s)   = ( $to_lang    =~ m{^([a-z]+)(_\w+)} );
+    ($from_lang_s) = ( $from_lang  =~ m{^([a-z]+)(_\w+)?} );
+    ($to_lang_s)   = ( $to_lang    =~ m{^([a-z]+)(_\w+)?} );
 
     REST::Google::Translate->http_referer('http://google.com');
 

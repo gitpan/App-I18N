@@ -44,22 +44,44 @@ template 'head' => sub {
 
     outs_raw qq|<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">\n|;
 
-
     js qw(
         /static/jquery-1.4.2.js
         /static/jquery.jgrowl.js
         /static/app.js
     );
+
+	my $mxhr = 0;
+	if( $mxhr ) {
+		js qw(
+			/static/DUI.js
+			/static/Stream.js);
+	}
+	else {
+		js qw(/static/jquery.ev.js);
+	}
+
     css qw(
-        /static/app.css
         /static/jquery.jgrowl.css
+        /static/app.css
     );
+
+
+	outs_raw qq|
+		<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+		<script type="text/javascript">
+            if( typeof google != "undefined" ) {
+                google.load("language", "1");
+            } 
+        </script>
+	|;
+
+
 };
 
 
 template 'edit_po' => sub {
     my ( $self, $handler, $translation ) = @_;
-    my $po_opts = $handler->application->webpo;
+    my $po_opts = $handler->application->options;
     my $podir   = $po_opts->{podir};
     unless( $translation ) {
         $translation = File::Spec->catfile( $podir , $handler->request->param( 'lang' ) . ".po" );
@@ -71,14 +93,12 @@ template 'edit_po' => sub {
         $logger->info( "$translation doesnt exist." );
     }
 
-
     my $LME = App::I18N->lm_extract();
     $LME->read_po( $translation ) if -f $translation;
 
     my $lex = $LME->lexicon;
 
     h3 { "Po Web Server: " . $translation };
-
 
     # load all po msgid and msgstr
     form { { method is 'post' }
@@ -93,7 +113,6 @@ template 'edit_po' => sub {
             div { { class is 'msgid column-header' } _("MsgID") }
             div { { class is 'msgstr column-header' } _("MsgStr") }
         };
-
 
         # XXX: a better way to read po file ? not to parse every time.
         while( my ($msgid,$msgstr) = each %$lex ) {
@@ -110,10 +129,6 @@ template 'edit_po' => sub {
                         outs decode_utf8 $msgstr;
                     };
                 }
-
-#                 div { { class is 'savethis' }
-#                     input { { type is 'button' , value is _("Save This") } };
-#                 };
             }
 
 
@@ -134,15 +149,53 @@ template 'edit_po' => sub {
 
 };
 
+
+template '/entry_edit' => sub {
+	div { { id is 'current-message' }
+		div { { class is 'navbar' }
+			input { { type is 'button' , class is 'prev-message' , value is 'Previous' } };
+			input { { type is 'button' , class is 'skip-message' , value is 'Next' } };
+			input { { type is 'button' , class is 'next-message' , value is 'Save and Next' } };
+		}
+
+		div { { id is 'message-content' }
+			div { { id is 'current-lang' } }
+			div { { id is 'current-msgid' } }
+			textarea { { id is 'current-msgstr' , rows is 6 , cols is 60 , tabindex is 1 } }
+		};
+
+		div { { class is 'navbar' }
+			input { { type is 'button' , class is 'prev-message' , value is 'Previous' , tabindex is 4 } };
+			input { { type is 'button' , class is 'skip-message' , value is 'Next' , tabindex is 3 } };
+			input { { type is 'button' , class is 'next-message' , value is 'Save and Next' , tabindex is 2 } };
+		}
+	}
+};
+
 template '/' => page {
     my ( $class, $handler ) = @_;
 
-    my $po_opts = $handler->application->webpo;
+    my $po_opts = $handler->application->options;
     my $podir   = $po_opts->{podir};
 
+    h1 {  "I18N" }
 
-    h1 {  "App::I18N Server" }
+	script { attr { type is 'text/javascript' }
+		outs_raw <<END;
+END
+	};
 
+	div { { id is 'langlist' } };
+
+	div { { id is 'panel' }
+	
+	};
+
+
+};
+
+
+=pod
     my $translation = 
         ( $po_opts->{pofile} )
             ? $po_opts->{pofile}
@@ -181,7 +234,8 @@ template '/' => page {
         };
     }
 
+=cut
 
-};
+
 
 1;

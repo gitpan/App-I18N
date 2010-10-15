@@ -38,8 +38,23 @@ sub options { (
     'podir=s'  => 'podir',
     ) }
 
+
+sub copy_potfile {
+    my ( $self, $potfile, $pofile ) = @_;
+    use File::Copy;
+
+    $self->logger->info(  "$pofile created.");
+    copy( $potfile , $pofile );
+    if( $self->{mo} ) {
+        my $mofile = $pofile;
+        $mofile =~ s{\.po$}{.mo};
+        $self->logger->info( "Generating MO file: $mofile" );
+        system(qq{msgfmt -v $pofile -o $mofile});
+    }
+}
+
 sub run {
-    my ( $self, $lang ) = @_;
+    my ( $self, @langs ) = @_;
     my $logger = $self->logger();
 
     my $podir = $self->{podir};
@@ -59,27 +74,18 @@ sub run {
     $logger->info( "$potfile found." );
     my $pofile;
     if( $self->{locale} ) {
-
-        mkpath [ File::Spec->join( $podir , $lang , 'LC_MESSAGES' )  ];
-        $pofile = File::Spec->join( $podir , $lang , 'LC_MESSAGES' , $pot_name . ".po" );
-
+        for my $lang ( @langs ) {
+            mkpath [ File::Spec->join( $podir , $lang , 'LC_MESSAGES' )  ];
+            $pofile = File::Spec->join( $podir , $lang , 'LC_MESSAGES' , $pot_name . ".po" );
+            $self->copy_potfile( $potfile , $pofile );
+        }
     }
     else {
-        $pofile = File::Spec->join( $podir , $lang . ".po" );
+        for my $lang ( @langs ) {
+            $pofile = File::Spec->join( $podir , $lang . ".po" );
+            $self->copy_potfile( $potfile , $pofile );
+        }
     }
-
-    use File::Copy;
-    $logger->info(  "$pofile created.");
-    copy( $potfile , $pofile );
-
-    if( $self->{mo} ) {
-
-        my $mofile = $pofile;
-        $mofile =~ s{\.po$}{.mo};
-        $logger->info( "Generating MO file: $mofile" );
-        system(qq{msgfmt -v $pofile -o $mofile});
-    }
-
     $logger->info( "Done" );
 }
 

@@ -35,6 +35,7 @@ requires:
   Getopt::Long: 0
   JSON::XS: 0
   LWP::Simple: 0
+  Locale::Language: 0
   Locale::Maketext::Extract: 0
   Locale::Maketext::Lexicon: 0
   MIME::Types: 0
@@ -43,4 +44,4 @@ requires:
   Tatsumaki: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.013
+version: 0.03
