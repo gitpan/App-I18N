@@ -13,7 +13,7 @@ use base qw(App::I18N::Command);
 sub options { (
     'podir=s'  => 'podir',
     'locale'  => 'locale',
-    'outdir=s' => 'output_dir',
+    'output=s' => 'output_dir',
     ) }
 
 
@@ -92,6 +92,7 @@ sub run {
     $podir = App::I18N->guess_podir( $self ) unless $podir;
     $self->{mo} = 1 if $self->{locale};
 
+    use Encode;
     File::Path::mkpath [ $output_dir ];
 
     if( $self->{locale} ) {
@@ -111,13 +112,20 @@ sub run {
             $extract->read_po($pofile);
 
             my $lexicon = $extract->lexicon;
+            my %entries = map {   
+                # Encode::_utf8_on( $lexicon->{ $_ } );
+                my $msgstr = decode_utf8 ( $lexicon->{ $_ } || "" );
+                $msgstr
+                    ? ( $_ => $msgstr )
+                    : () 
+                } keys %$lexicon;
 
             $logger->info( "Writing: $outfile" );
-            open FH , ">" , $outfile;
+            open FH , ">" , $outfile or die $!;
+            # binmode FH,":utf8";
             if( $type eq 'json' ) {
                 use JSON::XS;
-                print FH qq|/* $warnings */\n\n|;
-                print FH encode_json( $lexicon );
+                print FH encode_json( \%entries );
             }
             elsif ( $type eq 'js' ) {
                 use JSON::XS;
@@ -147,3 +155,28 @@ END
 }
 
 1;
+__END__
+=head1 NAME
+
+App::I18N::Command::Gen - Export dictionary to other formats.
+
+=head1 USAGE
+
+    po gen [TYPE] [OPTIONS]
+
+TYPE:
+
+Can be C<json>, C<js>, C<pm>.
+
+=head1 OPTIONS
+
+    --podir=[path]
+            Po files directory
+
+    --locale
+            Use locale directory structure.
+
+    --output=[path]
+            Path for output.
+
+=cut

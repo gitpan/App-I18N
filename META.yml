@@ -1,5 +1,5 @@
 ---
-abstract: ~
+abstract: 'I18N utility.'
 author:
   - 'Cornelius <cornelius.howl@gmail.com>'
 build_requires:

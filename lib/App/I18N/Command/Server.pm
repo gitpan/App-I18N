@@ -24,17 +24,16 @@ sub options { (
     'locale'    => 'locale',
 ) }
 
-=head3 %podata
-
-    { 
-        [lang_code] => { 
-            name => 'Language Name',
-            path => 'po file path',
-        },
-        ...
-    }
-
-=cut
+#  %podata
+# 
+#     { 
+#         [lang_code] => { 
+#             name => 'Language Name',
+#             path => 'po file path',
+#         },
+#         ...
+#     }
+# 
 
 
 sub run {
@@ -85,8 +84,18 @@ sub run {
     my %podata = ();
     for my $file ( @pofiles ) {
 
-        my ($langname)  = ( $file =~ m{([a-zA-Z-_]+)\.po$} );
-        my ($code) = ( $langname =~ m{^([a-zA-Z]+)} );
+        my $langname;
+        my $code;
+
+        if( $self->{locale} ) {
+            ($langname)  = ( $file =~ m{/([a-zA-Z-_]+)/LC_MESSAGES} );
+            ($code) = ( $langname =~ m{^([a-zA-Z]+)} );
+        }
+        else {
+            ($langname)  = ( $file =~ m{([a-zA-Z-_]+)\.po$} );
+            ($code) = ( $langname =~ m{^([a-zA-Z]+)} );
+        }
+
         $logger->info( "Importing $langname: $file" );
         $db->import_po( $langname , $file );
 
@@ -96,7 +105,6 @@ sub run {
             path => $file,
         };
     }
-
 
     $SIG{INT} = sub {
         # XXX: write sqlite data to po file here.
@@ -117,7 +125,7 @@ sub run {
     my $shareroot = 
         ( -e "./share" ) 
             ? 'share' 
-            : File::ShareDir::dist_dir( "App-Po" );
+            : File::ShareDir::dist_dir( "App-I18N" );
 
     $logger->info("share root: $shareroot");
     $logger->info("podir: $podir") if $podir;
@@ -144,3 +152,24 @@ sub run {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+App::I18N::Command::Server - web server / web editing interface.
+
+=head1 USAGE
+
+Start a web server to edit po file:
+
+    $ po server -f po/en.po
+
+Start a web server to edit po file of specified language:
+
+    $ po server --lang en
+
+Extract message from files and start a web server:
+
+    $ po server --dir lib --dir share/static --lang en
+
+=cut
